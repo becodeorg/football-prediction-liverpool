@@ -3,6 +3,7 @@ docs/repartition_travail.md
 docs/notes.md
 docs/plan_action_personnel.md
 docs/work_distribution.md
+notebooks/plandaction.ipynb
 
 # === ENVIRONNEMENTS PYTHON ===
 .venv/
