@@ -1,120 +1,98 @@
-# Football Match Prediction Project (Belgian Jupiler Pro League)
+# ⚽ Football Match Prediction System
 
-- Repository: `football-prediction`
-- Type of Challenge: `Consolidation`
-- Duration: `7 days`
-- Deadline: `dd/mm/yyyy 3PM`
-- Team challenge: Team (4)
+## ��� Description
 
-## Learning Objectives
+Système de prédiction de matchs de football utilisant l'intelligence artificielle pour prédire les résultats de futurs matchs basé sur les performances historiques des équipes.
 
-Build an end-to-end system that predicts football match outcomes using scraping, scheduling, machine learning, and data visualization.
+## ��� Fonctionnalités
 
-At the end of this challenge, you should:
+- **Prédiction de futurs matchs** avec analyse par saison
+- **Interface Streamlit** interactive et conviviale
+- **Modèle Random Forest** avec paramètres optimisés (tirs cadrés, tirs totaux, corners)
+- **Sélection flexible des saisons** pour l'analyse
+- **Statistiques détaillées** par équipe et par saison
+- **Analyse avancée** des performances domicile/extérieur
 
-- Be able to scrape and process data from football websites.
-- Be able to train a machine learning model on historical match data.
-- Be able to create a Streamlit app for live data visualization and predictions.
-- Be able to manage the entire data pipeline, scheduling for automation.
+## ��� Dataset
 
-## The Mission
+- **Ligue :** Jupiler Pro League (Belgique)
+- **Période :** 2019-20 à 2024-25 (6 saisons)
+- **Matchs :** 1,508 matchs analysés
+- **Variables :** HST, AST, HS, AS, HC, AC, FTHG, FTAG, FTR
 
-Your mission is to build a prediction system for the Belgian Jupiler Pro League football matches. You'll combine historical match data with scraped real-time data (odds, recent matches) to predict the outcome of upcoming games.
+## ���️ Installation
 
-### Dataset
+1. **Cloner le projet**
+\`\`\`bash
+git clone [repository-url]
+cd football_prediction_clean
+\`\`\`
 
-An old CSV containing match results from 5 years will be provided it comes from [this website](https://www.football-data.co.uk/), with the following key columns:
+2. **Installer les dépendances**
+\`\`\`bash
+pip install -r requirements.txt
+\`\`\`
 
-- Date = Match Date (dd/mm/yy)
-- Time = Match Kick-off Time
-- HomeTeam = Home Team
-- AwayTeam = Away Team
-- FTHG = Full Time Home Team Goals
-- FTAG = Full Time Away Team Goals
-- FTR = Full Time Result (H=Home Win, D=Draw, A=Away Win)
+## ��� Utilisation
 
-Additional statistics are included (shots, fouls, cards, etc.), which you can use to train your model. There also are historical odds given for each matches, the definitions of all columns is given [here](https://www.football-data.co.uk/notes.txt).
+### Interface Web (Recommandé)
+\`\`\`bash
+streamlit run football_prediction_app.py
+\`\`\`
+Puis ouvrir http://localhost:8501 dans votre navigateur
 
-**NOTE**: There is no point in using the stats of match X to predict the outcome of match X. If you try to predict the outcome of a football game before it happens, you have to look at how each team has been performing recently. You could, for example, use an average of the outcomes and stats of previous matches S,T,U,V,W to predict the outcome of X. Hence, this dataset is not a FEATURES | TARGET dataset. These have to be carved out.
+### Analyse dans Jupyter
+\`\`\`bash
+jupyter notebook football_analysis.ipynb
+\`\`\`
 
-This dataset is what the Data Engineers have to re-generate for the Data Analysts and Scientists. Consider it the bridge in the team.
+## ��� Structure du Projet
 
-### Must-have features
+\`\`\`
+football_prediction_clean/
+├── dataset.csv                    # Données des matchs
+├── football_prediction_app.py     # Application Streamlit
+├── football_analysis.ipynb        # Notebook d'analyse
+├── requirements.txt               # Dépendances Python
+└── README.md                      # Documentation
+\`\`\`
 
-- **Model Training and Scheduling Retraining**:
-  - Train a machine learning model on historical match data to predict the outcome of future matches
+## ��� Modèle
 
-- **Dashboard**:
-  - Display upcoming week matches and predicted outcomes using a machine learning model.
-  - Show outcome odds for the upcoming matches.
-  - Display stats for each team over the last 5 matches (goals, shots, etc.).
+- **Algorithme :** Random Forest (100 arbres)
+- **Features :** 3 variables par équipe
+  - Tirs cadrés moyens (HST/AST)
+  - Tirs totaux moyens (HS/AS)  
+  - Corners moyens (HC/AC)
+- **Distinction :** Performances domicile vs extérieur
+- **Validation :** Entraînement sur données historiques
 
-- **Scraper**:
-  - Build a scraper to fetch recent match data.
+## ��� Prédictions
 
-- **Automation**:
-  - Automate scraping using a scheduling tool to update the data periodically (Airflow, python scheduler, Azure Functions timer_trigger).
-  - You could also periodically retrain the model with recent match data and updated statistics.
+Le système analyse :
+- ✅ Moyennes historiques des équipes
+- ✅ Avantage du terrain (domicile/extérieur)
+- ✅ Corrélations entre statistiques offensives
+- ✅ Performances par saison sélectionnée
 
-### Nice-to-have features
+## ⚠️ Limitations
 
-- **Automated Betting Simulation**:
-  - Make a scraper on betting odds for matches ahead of time to choose what to bet on.
+- Ne prend pas en compte la forme récente
+- Ignore les blessures/suspensions/transferts
+- Basé uniquement sur les données historiques
+- Prédictions probabilistes, pas des certitudes
 
-- **Model Exploration**:
-  - Investigate adding additional features (e.g., possession stats, player absences) to improve model accuracy. Or notify things on the dashboard
+## ��� Résultats
 
-- **Database**:
-  - Historical match data could be stored in a database if needed
+Le modèle fournit :
+- **Score prédit** pour chaque équipe
+- **Niveau de confiance** de la prédiction
+- **Type de match** (offensif/défensif/équilibré)
+- **Statistiques détaillées** utilisées pour la prédiction
 
-### Some tips and content to support you
+## ��� Contact
 
-- **Hosting database**: 
-  - [Heroku Postgres](https://www.heroku.com/postgres)
-  - [ElephantSQL](https://www.elephantsql.com/)
-  - [SummaryOfOptions](https://gist.github.com/bmaupin/0ce79806467804fdbbf8761970511b8c)
-  - [AzureSQLDatabase](https://azure.microsoft.com/en-us/products/azure-sql/database)
+Projet développé pour l'analyse et la prédiction de matchs de football.
 
-- **Bookmaker odds**: Scrape odds from the following sources:
-  - [WhoScored](https://www.whoscored.com/)
-  - [SportsGambler](https://www.sportsgambler.com/)
-  - [OddsChecker](https://www.oddschecker.com/)
-  - [BetFirst](https://betfirst.dhnet.be/)
-
-## Deliverables
-
-1. **GitHub Repository**:
-   - Publish your code on GitHub.
-   - Include a README with:
-     - Project description
-     - Installation steps
-     - Usage instructions
-     - (Optional visuals)
-     - (Contributors)
-     - (Timeline)
-     - (Challenges and solutions)
-
-2. **App**:
-   - A dashboard displaying match predictions, team stats, and upcoming matches with odds.
-
-3. **Presentation**:
-   - How did you approach the problem?
-   - Who did what in the team?
-   - What were the challenges and how did you solve them?
-
-### Steps
-
-1. **Set up repository** and study the project requirements.
-2. **Split the work**:
-   - Build a web scraper. - DE
-   - Set up the hosting. - DE
-   - Automate scraping and model updates using a scheduling tool. - DE
-   - Train your prediction model using historical data. - DA
-   - Build and deploy the dashboard. - DA
-
-## A final note of encouragement
-
-_"Success is not the key to happiness. Happiness is the key to success. If you love what you are doing, you will be successful."_
-\- Albert Schweitzer
-
-![You've got this!](https://i.giphy.com/media/JWuBH9rCO2uZuHBFpm/giphy.gif)
+---
+*Utilisez ce système de manière responsable. Les prédictions sont basées sur des données historiques et ne garantissent aucun résultat.*
