@@ -41,10 +41,17 @@ st.markdown("""
     
     .metric-card {
         background: white;
-        padding: 1rem;
-        border-radius: 10px;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        padding: 1.5rem;
+        border-radius: 12px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
         border-left: 4px solid #667eea;
+        margin-bottom: 1rem;
+        transition: all 0.3s ease;
+    }
+    
+    .metric-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(0,0,0,0.15);
     }
     
     .success-box {
@@ -209,12 +216,12 @@ def calculate_team_stats(data, seasons):
     return team_stats
 
 def show_metric_card(title, value, subtitle):
-    """Affichage d'une métrique propre"""
+    """Affichage d'une métrique propre adaptée au thème"""
     st.markdown(f"""
     <div class="metric-card">
-        <h3 style="margin: 0; color: #667eea;">{title}</h3>
-        <h2 style="margin: 0.5rem 0; color: #333;">{value}</h2>
-        <p style="margin: 0; color: #666;">{subtitle}</p>
+        <h3 style="margin: 0; color: #667eea; font-weight: 600;">{title}</h3>
+        <h2 style="margin: 0.5rem 0; font-weight: 700; font-size: 1.8rem;">{value}</h2>
+        <p style="margin: 0; font-size: 0.9rem; opacity: 0.8;">{subtitle}</p>
     </div>
     """, unsafe_allow_html=True)
 
@@ -679,13 +686,76 @@ def main():
     if theme == "🌙 Mode Sombre":
         st.markdown("""
         <style>
-            .stApp { background-color: #1e1e1e; color: white; }
-            .metric-card { background: #2d2d2d; color: white; border-left-color: #667eea; }
-            .main-header { background: linear-gradient(90deg, #2d2d2d 0%, #1e1e1e 100%); }
+            .stApp { 
+                background-color: #1e1e1e; 
+                color: white; 
+            }
+            .metric-card { 
+                background: #2d2d2d !important; 
+                color: white !important; 
+                border-left-color: #667eea; 
+                box-shadow: 0 2px 8px rgba(255,255,255,0.1);
+            }
+            .main-header { 
+                background: linear-gradient(90deg, #2d2d2d 0%, #1e1e1e 100%); 
+                color: white;
+            }
+            .stMarkdown h3 {
+                color: white !important;
+            }
+            .stDataFrame {
+                background: #2d2d2d;
+                border-radius: 10px;
+            }
         </style>
         """, unsafe_allow_html=True)
         show_advanced_notification("Mode sombre activé! 🌙", "info")
     else:
+        # Mode clair corrigé
+        st.markdown("""
+        <style>
+            .stApp { 
+                background-color: #ffffff; 
+                color: #333333; 
+            }
+            .metric-card { 
+                background: #ffffff !important; 
+                color: #333333 !important; 
+                border: 1px solid #e0e0e0;
+                border-left-color: #667eea; 
+                box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            }
+            .main-header { 
+                background: linear-gradient(90deg, #667eea 0%, #764ba2 100%); 
+                color: white;
+            }
+            .stMarkdown h3 {
+                color: #333333 !important;
+                background: #f8f9fa;
+                padding: 0.5rem;
+                border-radius: 5px;
+                border-left: 4px solid #667eea;
+            }
+            .stDataFrame {
+                background: #ffffff;
+                border: 1px solid #e0e0e0;
+                border-radius: 10px;
+            }
+            .stDataFrame table {
+                background: #ffffff !important;
+                color: #333333 !important;
+            }
+            .stDataFrame th {
+                background: #f8f9fa !important;
+                color: #333333 !important;
+                border-bottom: 2px solid #dee2e6;
+            }
+            .stDataFrame td {
+                background: #ffffff !important;
+                color: #333333 !important;
+            }
+        </style>
+        """, unsafe_allow_html=True)
         show_advanced_notification("Mode clair activé! 🌞", "info")
     
     st.sidebar.markdown("---")
