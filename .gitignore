@@ -1,5 +1,54 @@
-repartition_travail.md
-notes.md
+# === DOCUMENTATION PRIVÉE ===
+docs/repartition_travail.md
+docs/notes.md
+docs/plan_action_personnel.md
+docs/work_distribution.md
+
+# === ENVIRONNEMENTS PYTHON ===
 .venv/
-plan_action_personnel.md
+venv/
+env/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+
+# === EDITEURS/IDE ===
 .vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# === JUPYTER NOTEBOOKS ===
+.ipynb_checkpoints/
+*/.ipynb_checkpoints/*
+
+# === DONNÉES SENSIBLES ===
+# Décommenter si tu as des données confidentielles
+# data/raw/*.csv
+# data/processed/*.csv
+
+# === MODÈLES ENTRAÎNÉS ===
+models/
+*.pkl
+*.joblib
+*.h5
+*.pth
+
+# === LOGS ET OUTPUTS ===
+logs/
+outputs/
+*.log
+
+# === SYSTÈME ===
+.DS_Store
+Thumbs.db
+*.tmp
+*.temp
+
+# === CONFIGURATION LOCALE ===
+config/local_config.py
+.env
+.env.local
