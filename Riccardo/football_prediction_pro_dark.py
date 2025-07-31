@@ -27,7 +27,7 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# CSS Ultra Moderne - Mode Sombre Exclusif
+# CSS Ultra Moderne - Mode Sombre Exclusif ⚡
 st.markdown("""
 <style>
     /* Variables CSS pour cohérence */
@@ -51,7 +51,7 @@ st.markdown("""
         background: linear-gradient(-45deg, #1a1a1a, #2d2d2d, #1e1e1e, #3a3a3a);
         background-size: 400% 400%;
         animation: gradientShift 15s ease infinite;
-        color: var(--text-primary);
+        color: var(--text-primary) !important;
     }
     
     @keyframes gradientShift {
@@ -109,7 +109,7 @@ st.markdown("""
     
     /* Cards avec effet néon subtil */
     .metric-card {
-        background: rgba(51, 51, 51, 0.8);
+        background: rgba(51, 51, 51, 0.8) !important;
         backdrop-filter: blur(10px);
         padding: 2rem;
         border-radius: var(--border-radius);
@@ -118,6 +118,7 @@ st.markdown("""
         transition: var(--transition);
         position: relative;
         overflow: hidden;
+        color: var(--text-primary) !important;
     }
     
     .metric-card::before {
@@ -180,6 +181,7 @@ st.markdown("""
         box-shadow: var(--shadow-glow) !important;
         position: relative !important;
         overflow: hidden !important;
+        width: 100% !important;
     }
     
     .stButton > button:hover {
@@ -240,7 +242,7 @@ st.markdown("""
     }
     
     /* Sidebar avec glassmorphism */
-    .css-1d391kg, .css-1y4p8pa {
+    .css-1d391kg, .css-1y4p8pa, .css-k1vhr4 {
         background: rgba(29, 29, 29, 0.9) !important;
         backdrop-filter: blur(20px) !important;
         border-right: 1px solid rgba(102, 126, 234, 0.2) !important;
@@ -261,6 +263,12 @@ st.markdown("""
     .stMultiSelect > div > div:hover {
         border-color: var(--accent-color) !important;
         box-shadow: 0 0 20px rgba(102, 126, 234, 0.2) !important;
+    }
+    
+    .stSelectbox label,
+    .stMultiSelect label {
+        color: var(--text-primary) !important;
+        font-weight: 600 !important;
     }
     
     /* DataFrames avec style futuriste */
@@ -332,6 +340,11 @@ st.markdown("""
         backdrop-filter: blur(10px) !important;
     }
     
+    .stRadio label {
+        color: var(--text-primary) !important;
+        font-weight: 600 !important;
+    }
+    
     /* Sliders avec effet néon */
     .stSlider > div > div > div > div {
         background: var(--primary-gradient) !important;
@@ -369,6 +382,16 @@ st.markdown("""
     
     ::-webkit-scrollbar-thumb:hover {
         background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+    }
+    
+    /* Texte général */
+    .stMarkdown, .stText, p, div {
+        color: var(--text-primary) !important;
+    }
+    
+    /* Spinners et loading */
+    .stSpinner > div {
+        border-color: var(--accent-color) !important;
     }
 </style>
 """, unsafe_allow_html=True)

@@ -1,4 +1,0 @@
-#!/bin/bash
-echo "íº€ DÃ©marrage de l'application Football Prediction..."
-echo "í³Š Chargement de l'interface Streamlit..."
-streamlit run football_prediction_app.py
