@@ -3,7 +3,7 @@ import pandas as pd
 from datetime import datetime, timedelta
 import os
 
-API_TOKEN = "kxBWdTSHN2gLqENdSVNtebYdwpI1FeohESbCaQwypB5oJFGrQvhQzTeaYGeC"
+API_TOKEN = "API_TOKEN"
 CSV_NAME = "matchs.csv"
 TODAY = datetime.today()
 DATE_END = TODAY.strftime("%Y-%m-%d")
