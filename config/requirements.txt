@@ -11,9 +11,11 @@ seaborn>=0.12.0
 
 # Machine learning
 scikit-learn>=1.3.0
+torch>=2.0.0
 
 # Optional but recommended for better performance and additional features
 # Jupyter environment (if running in notebooks)
 jupyter>=1.0.0
 notebook>=6.5.0
+ipykernel>=6.15.0
 
