@@ -29,6 +29,10 @@ def clean_data(df):
     Returns:
         pd.DataFrame: Dataset nettoyé
     """
+
+    # Filtrer uniquement la Jupiler Pro League belge
+    df = df[df['Div'] == 'B1']  # B1 = Jupiler Pro League
+
     # Garder seulement les colonnes spécifiées
     df = df[FEATURE_COLUMNS]
     # Supprimer les lignes avec des valeurs manquantes
@@ -119,7 +123,7 @@ def create_team_features(df, n_matches=DEFAULT_N_MATCHES):
     Returns:
         pd.DataFrame: Dataset avec features d'historique
     """
-    df['Date'] = pd.to_datetime(df['Date'], format='%d/%m/%y')
+    df['Date'] = pd.to_datetime(df['Date'], dayfirst=True, errors='coerce')
     df = df.sort_values(['Date', 'Time'])
     
     features_list = []
