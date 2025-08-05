@@ -12,6 +12,7 @@ seaborn>=0.12.0
 # Machine learning
 scikit-learn>=1.3.0
 torch>=2.0.0
+joblib
 
 # Optional but recommended for better performance and additional features
 # Jupyter environment (if running in notebooks)
