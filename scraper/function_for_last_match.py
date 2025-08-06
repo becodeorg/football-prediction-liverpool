@@ -26,4 +26,5 @@ def get_last_match(h_team, a_team, number_of_match=5):
             five_last_match_h_team = five_last_match_h_team.sort_values(by='Date', ascending=False)
             return five_last_match_h_team[:number_of_match], five_last_match_a_team[:number_of_match]
 
-print(get_last_match("Antwerp", "Genk"))
+if __name__ == "__main__":
+    print(get_last_match("Antwerp", "Genk"))
