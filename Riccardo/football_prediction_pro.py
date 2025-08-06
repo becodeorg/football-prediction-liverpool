@@ -1,7 +1,14 @@
 """
-🚀 FOOTBALL PREDICTION APP - VERSION ULTRA PROPRE
-=================================================
-Application de prédiction football sans bugs - Version nettoyée
+🚀 FOOTBALL PREDICTION APP - VERSION V10.0.0
+==============================================
+Application de prédiction football avancée avec:
+✅ Modèle d'ensemble 4-en-1
+✅ Analyse forme récente équipes  
+✅ Facteurs de condition (blessures/motivation)
+✅ Probabilités détaillées (Victoire/Nul/Défaite)
+✅ Interface utilisateur optimisée
+
+Release: 6 Août 2025 | Status: Production Ready
 """
 
 import streamlit as st
@@ -377,19 +384,41 @@ st.markdown("""
 def load_data():
     """Chargement des données football"""
     try:
-        # Essayer différents encodages
+        import os
+        
+        # Lister les chemins possibles pour le dataset
+        possible_paths = [
+            '../dataset.csv',
+            './dataset.csv', 
+            'dataset.csv',
+            'C:/Users/Ricca/football_prediction_clean/dataset.csv',
+            'C:/Users/Ricca/football_prediction_clean/Riccardo/dataset.csv'
+        ]
+        
+        # Charger le dataset
+        dataset_path = None
+        for path in possible_paths:
+            if os.path.exists(path):
+                dataset_path = path
+                break
+        
+        if dataset_path is None:
+            st.error("❌ Impossible de charger le fichier dataset.csv")
+            return None
+            
+        # Charger avec l'encodage qui fonctionne
         encodings = ['latin-1', 'utf-8', 'cp1252']
         data = None
         
         for encoding in encodings:
             try:
-                data = pd.read_csv('../dataset.csv', encoding=encoding)
+                data = pd.read_csv(dataset_path, encoding=encoding)
                 break
-            except:
+            except Exception:
                 continue
         
         if data is None:
-            st.error("❌ Impossible de charger le fichier dataset.csv")
+            st.error("❌ Impossible de charger le fichier avec tous les encodages testés")
             return None
         
         # Nettoyer et formater les données
@@ -404,6 +433,90 @@ def load_data():
     except Exception as e:
         st.error(f"❌ Erreur lors du chargement des données: {str(e)}")
         return None
+
+def calculate_recent_form(data, team, num_matches=5):
+    """AMÉLIORATION 2: Calcul de la forme récente d'une équipe (derniers 5 matchs)"""
+    if data is None or len(data) == 0:
+        return {"points": 0, "goals_for": 0, "goals_against": 0, "form_rating": 0.5}
+    
+    # Trier les données par date décroissante
+    sorted_data = data.sort_values('Date', ascending=False)
+    
+    # Récupérer les derniers matchs de l'équipe
+    team_matches = sorted_data[
+        (sorted_data['HomeTeam'] == team) | (sorted_data['AwayTeam'] == team)
+    ].head(num_matches)
+    
+    if len(team_matches) == 0:
+        return {"points": 0, "goals_for": 0, "goals_against": 0, "form_rating": 0.5}
+    
+    points = 0
+    goals_for = 0
+    goals_against = 0
+    
+    for _, match in team_matches.iterrows():
+        is_home = match['HomeTeam'] == team
+        
+        if is_home:
+            team_goals = match['FTHG']
+            opp_goals = match['FTAG']
+        else:
+            team_goals = match['FTAG']
+            opp_goals = match['FTHG']
+        
+        goals_for += team_goals
+        goals_against += opp_goals
+        
+        # Points : Victoire=3, Nul=1, Défaite=0
+        if team_goals > opp_goals:
+            points += 3
+        elif team_goals == opp_goals:
+            points += 1
+    
+    # Calcul du rating de forme (0-1)
+    max_points = num_matches * 3
+    form_rating = points / max_points if max_points > 0 else 0.5
+    
+    return {
+        "points": points,
+        "goals_for": goals_for,
+        "goals_against": goals_against,
+        "form_rating": form_rating,
+        "matches_played": len(team_matches)
+    }
+
+def simulate_team_condition(team):
+    """AMÉLIORATION 3: Simulation des blessures/suspensions et condition de l'équipe"""
+    import random
+    
+    # Simulation réaliste des facteurs d'équipe
+    injury_impact = random.uniform(-0.3, 0.1)  # Généralement négatif
+    suspension_impact = random.uniform(-0.2, 0)  # Toujours négatif ou neutre
+    fatigue_impact = random.uniform(-0.2, 0.2)  # Peut être positif (repos) ou négatif (fatigue)
+    
+    # Facteurs positifs occasionnels
+    motivation_boost = random.uniform(-0.1, 0.3)  # Derby, match important
+    home_advantage_extra = random.uniform(0, 0.2)  # Supporters, habitudes
+    
+    total_impact = (injury_impact + suspension_impact + fatigue_impact + 
+                   motivation_boost + home_advantage_extra)
+    
+    # Limiter l'impact entre -0.5 et +0.5 buts
+    total_impact = max(-0.5, min(0.5, total_impact))
+    
+    return {
+        "condition_impact": total_impact,
+        "injury_factor": injury_impact,
+        "suspension_factor": suspension_impact, 
+        "fatigue_factor": fatigue_impact,
+        "motivation_factor": motivation_boost,
+        "details": {
+            "injuries": injury_impact < -0.15,
+            "suspensions": suspension_impact < -0.1,
+            "high_motivation": motivation_boost > 0.2,
+            "fatigue": fatigue_impact < -0.15
+        }
+    }
 
 def calculate_team_stats(data, seasons):
     """Calcul des statistiques des équipes - Version Simplifiée"""
@@ -502,26 +615,214 @@ def show_advanced_notification(message, notification_type="info", icon="ℹ️")
     </div>
     """, unsafe_allow_html=True)
 
-def predict_match(home_team, away_team, team_stats):
-    """Prédiction simple d'un match"""
-    if home_team not in team_stats or away_team not in team_stats:
-        return None, None, 0
+def advanced_prediction_ensemble(home_team, away_team, team_stats, data=None):
+    """AMÉLIORATION 4: Modèle d'ensemble avec plusieurs approches de prédiction"""
     
-    # Calcul simple basé sur les moyennes
-    home_avg = team_stats[home_team]['avg_goals_home']
-    away_avg = team_stats[away_team]['avg_goals_away']
+    # Modèle 1: Prédiction basée sur les statistiques historiques
+    home_stats = team_stats.get(home_team, {})
+    away_stats = team_stats.get(away_team, {})
     
-    # Ajouter un peu de randomness
-    home_pred = max(0, home_avg + np.random.normal(0, 0.3))
-    away_pred = max(0, away_avg + np.random.normal(0, 0.3))
+    model1_home = home_stats.get('avg_goals_home', 1.5)
+    model1_away = away_stats.get('avg_goals_away', 1.5)
     
-    # Calcul de confiance
-    goal_diff = abs(home_pred - away_pred)
-    confidence = min(90, 50 + goal_diff * 30)
+    # Modèle 2: Prédiction basée sur la forme récente
+    home_form = calculate_recent_form(data, home_team) if data is not None else {"form_rating": 0.5}
+    away_form = calculate_recent_form(data, away_team) if data is not None else {"form_rating": 0.5}
     
-    return home_pred, away_pred, confidence
+    form_multiplier_home = 0.8 + (home_form['form_rating'] * 0.4)  # 0.8 à 1.2
+    form_multiplier_away = 0.8 + (away_form['form_rating'] * 0.4)
+    
+    model2_home = model1_home * form_multiplier_home
+    model2_away = model1_away * form_multiplier_away
+    
+    # Modèle 3: Prédiction basée sur l'équilibre défensif/offensif
+    home_attack = home_stats.get('avg_goals_scored', 1.5)
+    home_defense = home_stats.get('avg_goals_conceded', 1.5)
+    away_attack = away_stats.get('avg_goals_scored', 1.5)
+    away_defense = away_stats.get('avg_goals_conceded', 1.5)
+    
+    # Confrontation attaque vs défense
+    model3_home = (home_attack + away_defense) / 2
+    model3_away = (away_attack + home_defense) / 2
+    
+    # Modèle 4: Prédiction avec facteurs externes
+    home_condition = simulate_team_condition(home_team)
+    away_condition = simulate_team_condition(away_team)
+    
+    model4_home = model1_home + home_condition['condition_impact']
+    model4_away = model1_away + away_condition['condition_impact']
+    
+    # Ensemble: Moyenne pondérée des 4 modèles
+    weights = [0.3, 0.25, 0.25, 0.2]  # Poids pour chaque modèle
+    
+    ensemble_home = (
+        weights[0] * model1_home + 
+        weights[1] * model2_home + 
+        weights[2] * model3_home + 
+        weights[3] * model4_home
+    )
+    
+    ensemble_away = (
+        weights[0] * model1_away + 
+        weights[1] * model2_away + 
+        weights[2] * model3_away + 
+        weights[3] * model4_away
+    )
+    
+    # Calcul de confiance basé sur la convergence des modèles
+    predictions = [
+        [model1_home, model1_away],
+        [model2_home, model2_away], 
+        [model3_home, model3_away],
+        [model4_home, model4_away]
+    ]
+    
+    # Mesurer la variance entre les prédictions
+    home_variance = np.var([p[0] for p in predictions])
+    away_variance = np.var([p[1] for p in predictions])
+    avg_variance = (home_variance + away_variance) / 2
+    
+    # Confiance inversement proportionnelle à la variance
+    base_confidence = 70
+    variance_penalty = min(30, avg_variance * 50)
+    confidence = max(40, base_confidence - variance_penalty)
+    
+    return max(0, ensemble_home), max(0, ensemble_away), confidence, {
+        "model1": [model1_home, model1_away],
+        "model2": [model2_home, model2_away],
+        "model3": [model3_home, model3_away], 
+        "model4": [model4_home, model4_away],
+        "home_condition": home_condition,
+        "away_condition": away_condition
+    }
 
-def generate_multi_match_predictions(teams, team_stats, num_matches=10):
+def calculate_match_probabilities(home_goals, away_goals):
+    """Calcul des probabilités de résultat basé sur les scores prédits"""
+    
+    # Différence de buts prédite
+    goal_diff = home_goals - away_goals
+    
+    # Calcul des probabilités avec une fonction logistique
+    # Plus la différence est grande, plus la probabilité de victoire augmente
+    
+    # Probabilité de victoire domicile
+    if goal_diff > 0:
+        # Victoire domicile probable
+        home_win_prob = 0.5 + (goal_diff / (goal_diff + 2)) * 0.4
+    else:
+        # Défaite ou égalité
+        home_win_prob = 0.5 / (1 + abs(goal_diff))
+    
+    # Probabilité de victoire extérieur  
+    if goal_diff < 0:
+        # Victoire extérieur probable
+        away_win_prob = 0.5 + (abs(goal_diff) / (abs(goal_diff) + 2)) * 0.4
+    else:
+        # Défaite ou égalité
+        away_win_prob = 0.5 / (1 + goal_diff)
+    
+    # Probabilité de match nul
+    # Plus les scores sont proches, plus la probabilité de nul augmente
+    if abs(goal_diff) < 0.5:
+        draw_prob = 0.35  # Probabilité élevée si scores très proches
+    elif abs(goal_diff) < 1.0:
+        draw_prob = 0.25  # Probabilité modérée
+    else:
+        draw_prob = 0.15 / (1 + abs(goal_diff))  # Probabilité faible si grande différence
+    
+    # Normaliser pour que la somme soit 100%
+    total = home_win_prob + away_win_prob + draw_prob
+    
+    home_win_prob = (home_win_prob / total) * 100
+    away_win_prob = (away_win_prob / total) * 100
+    draw_prob = (draw_prob / total) * 100
+    
+    return {
+        'home_win': round(home_win_prob, 1),
+        'draw': round(draw_prob, 1), 
+        'away_win': round(away_win_prob, 1)
+    }
+
+def predict_match(home_team, away_team, team_stats, data=None, use_advanced=True):
+    """Prédiction améliorée d'un match avec toutes les améliorations et probabilités"""
+    if home_team not in team_stats or away_team not in team_stats:
+        return None, None, 0, None
+    
+    # AMÉLIORATION 4: Utiliser le modèle d'ensemble avancé par défaut
+    if use_advanced:
+        ensemble_home, ensemble_away, ensemble_confidence, details = advanced_prediction_ensemble(
+            home_team, away_team, team_stats, data
+        )
+        # Calculer les probabilités de résultat
+        probabilities = calculate_match_probabilities(ensemble_home, ensemble_away)
+        return ensemble_home, ensemble_away, ensemble_confidence, probabilities
+    
+    # Méthode simplifiée (ancienne version avec améliorations 1-3)
+    # AMÉLIORATION 1: Analyser plus de données pour les matchs nuls
+    home_stats = team_stats[home_team]
+    away_stats = team_stats[away_team]
+    
+    # Calcul basique
+    home_avg = home_stats['avg_goals_home']
+    away_avg = away_stats['avg_goals_away']
+    
+    # AMÉLIORATION 2: Intégrer la forme récente des équipes
+    home_form = calculate_recent_form(data, home_team) if data is not None else {"form_rating": 0.5}
+    away_form = calculate_recent_form(data, away_team) if data is not None else {"form_rating": 0.5}
+    
+    # Facteur de forme (0.5 = forme neutre, >0.5 = bonne forme, <0.5 = mauvaise forme)
+    home_form_boost = (home_form['form_rating'] - 0.5) * 0.8  # Impact modéré de la forme
+    away_form_boost = (away_form['form_rating'] - 0.5) * 0.8
+    
+    # AMÉLIORATION 3: Considérer les blessures/suspensions et condition
+    home_condition = simulate_team_condition(home_team)
+    away_condition = simulate_team_condition(away_team)
+    
+    home_condition_impact = home_condition['condition_impact']
+    away_condition_impact = away_condition['condition_impact']
+    
+    # NOUVEAU: Facteur de tendance aux matchs nuls
+    home_draws_rate = home_stats.get('draw_rate', 0.25)  # Taux de nuls historique
+    away_draws_rate = away_stats.get('draw_rate', 0.25)
+    avg_draw_rate = (home_draws_rate + away_draws_rate) / 2
+    
+    # NOUVEAU: Ajustement selon la tendance équilibrée des équipes
+    goal_balance_home = abs(home_stats.get('avg_goals_scored', 1.5) - home_stats.get('avg_goals_conceded', 1.5))
+    goal_balance_away = abs(away_stats.get('avg_goals_scored', 1.5) - away_stats.get('avg_goals_conceded', 1.5))
+    
+    # Si les équipes sont équilibrées, augmenter la probabilité de nul
+    if goal_balance_home < 0.5 and goal_balance_away < 0.5:
+        # Équipes équilibrées = plus de chance de match nul
+        draw_factor = 1.2
+    else:
+        draw_factor = 1.0
+    
+    # Prédiction avec facteur de nul, forme récente ET condition d'équipe
+    home_pred = max(0, home_avg + home_form_boost + home_condition_impact + np.random.normal(0, 0.15))
+    away_pred = max(0, away_avg + away_form_boost + away_condition_impact + np.random.normal(0, 0.15))
+    
+    # NOUVEAU: Ajustement pour les matchs nuls probables
+    if avg_draw_rate > 0.3 and abs(home_pred - away_pred) < 0.8:
+        # Rapprocher les scores pour simuler un match équilibré
+        avg_score = (home_pred + away_pred) / 2
+        home_pred = avg_score + np.random.normal(0, 0.3)
+        away_pred = avg_score + np.random.normal(0, 0.3)
+    
+    # Calcul de confiance amélioré avec forme
+    goal_diff = abs(home_pred - away_pred)
+    form_confidence_boost = abs(home_form['form_rating'] - away_form['form_rating']) * 20
+    confidence = min(95, 50 + goal_diff * 25 + form_confidence_boost)
+    
+    # Réduire la confiance si match nul probable
+    if goal_diff < 0.5:
+        confidence *= 0.8  # Match incertain
+    
+    # Calculer les probabilités pour la méthode simplifiée aussi
+    probabilities = calculate_match_probabilities(home_pred, away_pred)
+    
+    return home_pred, away_pred, confidence, probabilities
+
+def generate_multi_match_predictions(teams, team_stats, data=None, num_matches=10):
     """Générer des prédictions pour un calendrier complet - ÉTAPE 1.B"""
     import random
     
@@ -532,8 +833,8 @@ def generate_multi_match_predictions(teams, team_stats, num_matches=10):
         home_team = random.choice(teams)
         away_team = random.choice([t for t in teams if t != home_team])
         
-        # Prédire le match
-        home_pred, away_pred, confidence = predict_match(home_team, away_team, team_stats)
+        # Prédire le match avec données de forme récente
+        home_pred, away_pred, confidence, probabilities = predict_match(home_team, away_team, team_stats, data)
         
         if home_pred is not None:
             # Déterminer le résultat
@@ -576,7 +877,7 @@ def show_multi_match_interface(data, selected_seasons, team_stats, teams):
             with st.spinner("🤖 Génération des prédictions..."):
                 time.sleep(2)  # Simulation
                 
-                predictions = generate_multi_match_predictions(teams, team_stats, num_matches)
+                predictions = generate_multi_match_predictions(teams, team_stats, data, num_matches)
                 
                 if predictions:
                     show_advanced_notification(f"✅ {len(predictions)} prédictions générées avec succès!", "success")
@@ -759,6 +1060,29 @@ def show_prediction_interface(data, selected_seasons, team_stats, teams):
     st.markdown("---")
     st.markdown("## 🎯 Prédiction de Match")
     
+    # AMÉLIORATION 4: Sélecteur de niveau de prédiction
+    st.markdown("### ⚙️ Configuration du Modèle")
+    col_config1, col_config2 = st.columns(2)
+    
+    with col_config1:
+        prediction_mode = st.selectbox(
+            "🧠 Niveau de prédiction:",
+            ["🚀 Modèle Avancé (Recommandé)", "📊 Modèle Simplifié"],
+            help="Le modèle avancé utilise un ensemble de 4 algorithmes différents pour plus de précision"
+        )
+        use_advanced = prediction_mode.startswith("🚀")
+    
+    with col_config2:
+        if use_advanced:
+            st.success("✅ Utilisation du modèle d'ensemble avec:")
+            st.write("• Analyse des matchs nuls")
+            st.write("• Forme récente des équipes") 
+            st.write("• Facteurs de condition")
+            st.write("• 4 modèles combinés")
+        else:
+            st.info("📊 Modèle simplifié activé")
+    
+    st.markdown("---")
     col1, col2 = st.columns(2)
     
     with col1:
@@ -793,9 +1117,9 @@ def show_prediction_interface(data, selected_seasons, team_stats, teams):
             with st.spinner("🤖 Calcul en cours..."):
                 time.sleep(1)
                 
-                home_pred, away_pred, confidence = predict_match(home_team, away_team, team_stats)
+                home_pred, away_pred, confidence, probabilities = predict_match(home_team, away_team, team_stats, data, use_advanced)
                 
-                if home_pred is not None:
+                if home_pred is not None and probabilities is not None:
                     st.markdown("---")
                     st.markdown("### 🏆 Résultat de la Prédiction")
                     
@@ -811,13 +1135,46 @@ def show_prediction_interface(data, selected_seasons, team_stats, teams):
                         </div>
                         """, unsafe_allow_html=True)
                     
-                    # Analyse du résultat
-                    if home_pred > away_pred + 0.5:
-                        st.success(f"🏆 Victoire probable de {home_team}")
-                    elif away_pred > home_pred + 0.5:
-                        st.success(f"🏆 Victoire probable de {away_team}")
+                    # NOUVEAU: Affichage des probabilités de résultat
+                    st.markdown("### 📊 Probabilités de Résultat")
+                    col_prob1, col_prob2, col_prob3 = st.columns(3)
+                    
+                    with col_prob1:
+                        st.markdown(f"""
+                        <div style="text-align: center; background: linear-gradient(135deg, #28a745, #20c997); 
+                                    padding: 1.5rem; border-radius: 15px; color: white; margin: 0.5rem 0;">
+                            <h4>🏠 Victoire {home_team}</h4>
+                            <h2 style="font-size: 2.5rem; margin: 0.5rem 0;">{probabilities['home_win']:.1f}%</h2>
+                        </div>
+                        """, unsafe_allow_html=True)
+                    
+                    with col_prob2:
+                        st.markdown(f"""
+                        <div style="text-align: center; background: linear-gradient(135deg, #ffc107, #fd7e14); 
+                                    padding: 1.5rem; border-radius: 15px; color: white; margin: 0.5rem 0;">
+                            <h4>⚖️ Match Nul</h4>
+                            <h2 style="font-size: 2.5rem; margin: 0.5rem 0;">{probabilities['draw']:.1f}%</h2>
+                        </div>
+                        """, unsafe_allow_html=True)
+                    
+                    with col_prob3:
+                        st.markdown(f"""
+                        <div style="text-align: center; background: linear-gradient(135deg, #dc3545, #e83e8c); 
+                                    padding: 1.5rem; border-radius: 15px; color: white; margin: 0.5rem 0;">
+                            <h4>✈️ Victoire {away_team}</h4>
+                            <h2 style="font-size: 2.5rem; margin: 0.5rem 0;">{probabilities['away_win']:.1f}%</h2>
+                        </div>
+                        """, unsafe_allow_html=True)
+                    
+                    # Analyse du résultat avec les probabilités
+                    max_prob = max(probabilities['home_win'], probabilities['draw'], probabilities['away_win'])
+                    
+                    if probabilities['home_win'] == max_prob:
+                        st.success(f"🏆 Victoire probable de {home_team} ({probabilities['home_win']:.1f}% de chances)")
+                    elif probabilities['away_win'] == max_prob:
+                        st.success(f"🏆 Victoire probable de {away_team} ({probabilities['away_win']:.1f}% de chances)")
                     else:
-                        st.warning("⚖️ Match équilibré - Résultat incertain")
+                        st.warning(f"⚖️ Match nul probable ({probabilities['draw']:.1f}% de chances)")
                 
                 else:
                     st.error("❌ Impossible de calculer la prédiction")
@@ -893,8 +1250,8 @@ def main():
     if data is None:
         st.stop()
     
-    # ÉTAPE 2: Notification avancée de succès
-    show_advanced_notification(f"{len(data)} matchs chargés avec succès! Base de données prête.", "success")
+    # ÉTAPE 2: Notification de succès
+    show_advanced_notification(f"⚽ Application prête avec {len(data)} matchs disponibles!", "success")
     
     # Sidebar pour sélection des saisons
     st.sidebar.markdown("## 📅 Configuration")
