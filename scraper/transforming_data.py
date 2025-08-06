@@ -30,7 +30,7 @@ def normalize_year(df):
     df = df[df['Date'].notna()]
     return df
 
-def keep_years(df, min_y=2023, max_y=2026):
+def keep_years(df, min_y=2020, max_y=2026):
     return df[df['Date'].str.endswith(tuple(str(y) for y in range(min_y, max_y+1)))]
 
 def throw_unamed(df):
@@ -42,4 +42,4 @@ df = normalize_year(df)
 df = keep_years(df)
 df = throw_unamed(df)
 
-df.to_csv("data_2023_2026.csv")
+df.to_csv("data_2020_2026.csv")
